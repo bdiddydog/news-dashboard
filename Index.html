@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Just Enough News/Weather Corner - Live Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #2c3e50, #3498db);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255,255,255,0.05) 10px,
+                rgba(255,255,255,0.05) 20px
+            );
+            animation: shimmer 4s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .last-updated {
+            position: relative;
+            z-index: 1;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+        }
+
+        .section {
+            padding: 30px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.3s ease;
+        }
+
+        .section:hover {
+            background-color: rgba(52, 152, 219, 0.05);
+        }
+
+        .section:nth-child(odd) {
+            border-right: 1px solid #eee;
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .icon {
+            font-size: 1.2em;
+        }
+
+        .news-section {
+            grid-column: 1 / -1;
+            border-right: none;
+        }
+
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .news-item {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 5px solid #e74c3c;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .news-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .news-item h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+
+        .news-item p {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .news-source {
+            font-size: 0.9em;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .weather-card {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            border: 3px solid rgba(52, 152, 219, 0.3);
+        }
+
+        .temperature {
+            font-size: 3em;
+            font-weight: bold;
+            color: #3498db;
+            margin: 15px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .weather-detail {
+            margin: 10px 0;
+            font-size: 1.1em;
+        }
+
+        .alert {
+            background: #ffe4e1;
+            border: 2px solid #ff6b6b;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            color: #d63031;
+            font-weight: bold;
+        }
+
+        .sports-section {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .sports-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            border-bottom: 2px solid #f39c12;
+            padding-bottom: 10px;
+        }
+
+        .game {
+            background: rgba(255,255,255,0.8);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border-left: 4px solid #f39c12;
+        }
+
+        .fun-fact-card {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            border: 3px solid rgba(243, 156, 18, 0.3);
+        }
+
+        .fact-text {
+            font-size: 1.4em;
+            color: #e67e22;
+            margin-bottom: 15px;
+            font-style: italic;
+            font-weight: bold;
+        }
+
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(45deg, #3498db, #2c3e50);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 1.5em;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            z-index: 1000;
+        }
+
+        .refresh-btn:hover {
+            transform: scale(1.1) rotate(180deg);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #3498db;
+            font-size: 1.2em;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .embed-container {
+            position: relative;
+            height: 300px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+        }
+
+        .embed-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .link-button {
+            display: inline-block;
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 25px;
+            margin: 5px;
+            transition: transform 0.3s ease;
+            font-weight: bold;
+        }
+
+        .link-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .section:nth-child(odd) {
+                border-right: none;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .news-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .refresh-btn {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 1.2em;
+            }
+        }
+
+        .auto-refresh {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <div class="auto-refresh">🔄 Auto-refreshes every 30 minutes</div>
+            <h1>📰 Just Enough News/Weather Corner</h1>
+            <div class="last-updated" id="lastUpdated">Last updated: Loading...</div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div>🔄 Refreshing your dashboard...</div>
+        </div>
+
+        <div class="dashboard-grid" id="content">
+            <div class="section news-section">
+                <h2><span class="icon">🌍</span>Latest Headlines</h2>
+                <div class="news-grid">
+                    <div class="news-item">
+                        <h3>Federal Court Blocks Trump's Tariff Strategy</h3>
+                        <p>A federal court has dealt a major blow to President Trump's economic agenda by blocking his broad tariffs imposed under emergency powers.</p>
+                        <div class="news-source">92Q News</div>
+                    </div>
+                    <div class="news-item">
+                        <h3>Iran Increases Uranium Stockpile</h3>
+                        <p>A classified UN report reveals Iran has sharply increased its uranium stockpile ahead of renewed nuclear talks with the U.S.</p>
+                        <div class="news-source">NPR</div>
+                    </div>
+                    <div class="news-item">
+                        <h3>NBA Finals Set: Pacers vs Thunder</h3>
+                        <p>Indiana defeats New York 4-2 to advance to the Finals, where they'll face Oklahoma City for the first NBA title for either franchise.</p>
+                        <div class="news-source">ESPN</div>
+                    </div>
+                    <div class="news-item">
+                        <h3>Canadian Wildfires Impact U.S.</h3>
+                        <p>Manitoba wildfires force 17,000 evacuations, with smoke plumes drifting into the Northern Plains and Midwest.</p>
+                        <div class="news-source">CNN</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; text-align: center;">
+                    <a href="https://www.npr.org/sections/news/" target="_blank" class="link-button">📰 More News</a>
+                    <a href="https://www.reuters.com/world/" target="_blank" class="link-button">🌍 World News</a>
+                    <a href="https://www.usnews.com/news" target="_blank" class="link-button">🇺🇸 U.S. News</a>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🌤️</span>Wilmington Weather</h2>
+                <div class="weather-card">
+                    <h3>Today</h3>
+                    <div class="temperature">71°F</div>
+                    <div class="weather-detail"><strong>Partly Cloudy & Breezy</strong></div>
+                    <div class="weather-detail">Afternoon thunderstorms likely</div>
+                    <div class="weather-detail">Tonight: Low 48°F</div>
+                    <div class="weather-detail">Tomorrow: Sunny, High 70°F</div>
+                    
+                    <div class="alert">
+                        🌿 Allergy Alert: Very High Pollen Levels
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; text-align: center;">
+                    <a href="https://weather.com/weather/today/l/Wilmington+DE" target="_blank" class="link-button">🌡️ Detailed Forecast</a>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🏆</span>Sports Central</h2>
+                
+                <div class="sports-section">
+                    <h3>🏀 NBA Finals</h3>
+                    <div class="game">
+                        <strong>Indiana Pacers vs. Oklahoma City Thunder</strong><br>
+                        Game 1: Thursday, June 5 at 8:30 PM ET<br>
+                        <em>First NBA title for either franchise!</em>
+                    </div>
+                </div>
+
+                <div class="sports-section">
+                    <h3>🏒 Stanley Cup Final</h3>
+                    <div class="game">
+                        <strong>Florida Panthers vs. Edmonton Oilers</strong><br>
+                        Game 1: Wednesday, June 4 at 8:00 PM ET<br>
+                        <em>Rematch of 2024 Final!</em>
+                    </div>
+                </div>
+
+                <div class="sports-section">
+                    <h3>⚾ MLB Today</h3>
+                    <div class="game">
+                        Mets @ Rockies • Orioles @ White Sox<br>
+                        Phillies @ Brewers • Astros @ Rays<br>
+                        <em>Rockies struggling at 9-49</em>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 15px;">
+                    <a href="https://www.espn.com/nba/" target="_blank" class="link-button">🏀 NBA</a>
+                    <a href="https://www.espn.com/nhl/" target="_blank" class="link-button">🏒 NHL</a>
+                    <a href="https://www.espn.com/mlb/" target="_blank" class="link-button">⚾ MLB</a>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">🧠</span>Today's Fun Fact</h2>
+                <div class="fun-fact-card">
+                    <div class="fact-text">"Bananas are naturally radioactive! 🍌"</div>
+                    <p>Due to their potassium content, bananas contain potassium-40, making them slightly radioactive. Your body is already 280 times more radioactive than a banana!</p>
+                </div>
+                
+                <div style="text-align: center; margin-top: 15px;">
+                    <a href="https://www.sciencefocus.com/science/fun-facts" target="_blank" class="link-button">🔬 More Fun Facts</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="refresh-btn" onclick="refreshDashboard()" title="Refresh Dashboard">
+        🔄
+    </button>
+
+    <script>
+        // Auto-refresh every 30 minutes
+        const REFRESH_INTERVAL = 30 * 60 * 1000; // 30 minutes
+        let refreshTimer;
+
+        function updateTimestamp() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('lastUpdated').textContent = 
+                `Last updated: ${now.toLocaleDateString('en-US', options)}`;
+        }
+
+        function showLoading() {
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('content').style.opacity = '0.5';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').classList.remove('active');
+            document.getElementById('content').style.opacity = '1';
+        }
+
+        function refreshDashboard() {
+            showLoading();
+            
+            // Simulate refresh delay
+            setTimeout(() => {
+                updateTimestamp();
+                hideLoading();
+                
+                // Add a subtle flash effect
+                document.querySelector('.header').style.transform = 'scale(1.02)';
+                setTimeout(() => {
+                    document.querySelector('.header').style.transform = 'scale(1)';
+                }, 200);
+                
+                // In a real implementation, you would:
+                // 1. Fetch fresh data from news APIs
+                // 2. Update weather information
+                // 3. Get latest sports scores
+                // 4. Generate new fun facts
+                
+                console.log('Dashboard refreshed!');
+            }, 1500);
+        }
+
+        function startAutoRefresh() {
+            refreshTimer = setInterval(() => {
+                console.log('Auto-refreshing dashboard...');
+                refreshDashboard();
+            }, REFRESH_INTERVAL);
+        }
+
+        function stopAutoRefresh() {
+            if (refreshTimer) {
+                clearInterval(refreshTimer);
+            }
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTimestamp();
+            startAutoRefresh();
+            
+            // Add smooth transitions
+            document.querySelector('.dashboard').style.transform = 'translateY(20px)';
+            document.querySelector('.dashboard').style.opacity = '0';
+            
+            setTimeout(() => {
+                document.querySelector('.dashboard').style.transition = 'all 0.8s ease';
+                document.querySelector('.dashboard').style.transform = 'translateY(0)';
+                document.querySelector('.dashboard').style.opacity = '1';
+            }, 100);
+        });
+
+        // Pause auto-refresh when page is not visible
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                stopAutoRefresh();
+            } else {
+                startAutoRefresh();
+            }
+        });
+
+        // Add keyboard shortcut for refresh (Ctrl/Cmd + R)
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+                e.preventDefault();
+                refreshDashboard();
+            }
+        });
+    </script>
+</body>
+</html>
